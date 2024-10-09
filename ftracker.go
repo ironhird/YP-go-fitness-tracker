@@ -82,12 +82,9 @@ const (
 // duration float64 — длительность тренировки в часах.
 func RunningSpentCalories(action int, weight, duration float64) float64 {
     // ваш код здесь
-    // ((18 * СредняяСкоростьВКм/ч * 1.79) * ВесСпортсменаВКг / 
-    // mInKM  * ВремяТренировкиВЧасах * minInH)
-    var res float64
-    res = meanSpeed(action, duration)
-    res = res * runningCaloriesMeanSpeedMultiplier * runningCaloriesMeanSpeedShift * weight
-    res = res / (mInKm * duration * minInH)
+    // ((18 * СредняяСкоростьВКм/ч * 1.79) * ВесСпортсменаВКг / mInKM  * ВремяТренировкиВЧасах * minInH)
+    res := runningCaloriesMeanSpeedMultiplier * meanSpeed(action, duration) * runningCaloriesMeanSpeedShift
+    res = res * weight / mInKm * duration * minInH
     return res
 }
 
@@ -107,15 +104,14 @@ const (
 // height float64 — рост пользователя.
 func WalkingSpentCalories(action int, duration, weight, height float64) float64 {
     // ваш код здесь
-    /*  ( (0.035 * ВесСпортсменаВКг + 
-        (СредняяСкоростьВМетрахВСекунду**2 / РостВМетрах)
-         * 0.029 * ВесСпортсменаВКг)
-         * ВремяТренировкиВЧасах * minInH ) */
-    var res float64
-    res = meanSpeed(action, duration)
-    res = math.Pow(res, 2) / height
-    res = res * walkingSpeedHeightMultiplier * weight
-    res = res + walkingCaloriesWeightMultiplier * weight
+    /*
+    (0.035 * ВесСпортсменаВКг + (СредняяСкоростьВМетрахВСекунду**2 / РостВМетрах)
+    * 0.029 * ВесСпортсменаВКг) * ВремяТренировкиВЧасах * minInH
+    */
+    meanSpeedMsec := meanSpeed(action, duration) * kmhInMsec
+    heightMeters := height /100
+    res := math.Pow(meanSpeedMsec, 2) / heightMeters
+    res = walkingCaloriesWeightMultiplier * weight + res * walkingSpeedHeightMultiplier * weight
     res = res * duration * minInH
     return res
 }
@@ -151,8 +147,7 @@ func swimmingMeanSpeed(lengthPool, countPool int, duration float64) float64 {
 func SwimmingSpentCalories(lengthPool, countPool int, duration, weight float64) float64 {
     // ваш код здесь
     // (СредняяСкоростьВКм/ч + 1.1) * 2 * ВесСпортсменаВКг * ВремяТренировкиВЧасах
-    var res float64
-    res = swimmingMeanSpeed(lengthPool, countPool, duration) + swimmingCaloriesMeanSpeedShift
+    res := swimmingMeanSpeed(lengthPool, countPool, duration) + swimmingCaloriesMeanSpeedShift
     res = res * swimmingCaloriesWeightMultiplier * weight * duration
     return res
 }
